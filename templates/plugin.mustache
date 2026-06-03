@@ -1,0 +1,40 @@
+<?php
+/**
+ * Plugin Name:       {{plugin_name}}
+ * Plugin URI:        {{plugin_uri}}
+ * Description:       {{plugin_description}}
+ * Version:           0.1.0
+ * Requires at least: 6.4
+ * Requires PHP:      8.1
+ * Tested up to:      {{plugin_tested_up_to}}
+ * Author:            {{plugin_author}}
+ * Author URI:        {{plugin_author_uri}}
+ * License:           GPL-2.0-or-later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain:       {{textdomain}}
+ * Domain Path:       /languages
+ *
+ * @package           {{plugin_package}}
+ */
+
+defined( 'ABSPATH' ) || exit;
+
+define( '{{plugin_const_prefix}}_VERSION', '0.1.0' );
+define( '{{plugin_const_prefix}}_PLUGIN_FILE', __FILE__ );
+define( '{{plugin_const_prefix}}_PATH', plugin_dir_path( __FILE__ ) );
+define( '{{plugin_const_prefix}}_URL', plugin_dir_url( __FILE__ ) );
+
+require_once {{plugin_const_prefix}}_PATH . 'src/Autoloader.php';
+require_once {{plugin_const_prefix}}_PATH . 'src/Packages.php';
+
+if ( ! \{{plugin_namespace}}\Autoloader::init() ) {
+	return;
+}
+\{{plugin_namespace}}\Packages::init();
+
+add_action(
+	'init',
+	function () {
+		load_plugin_textdomain( '{{textdomain}}', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+	}
+);

@@ -1,0 +1,63 @@
+{
+    "name": "camaleaun/wpcli-scaffold-plugin-command",
+    "type": "wp-cli-package",
+    "description": "WP-CLI command: wp scaffold camaleaun-plugin — opinionated plugin scaffold with PSR-4, DI container, PHPUnit (unit/BDD), PHPStan and PHPCS.",
+    "homepage": "https://camaleaun.github.io",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Camaleaun",
+            "homepage": "https://camaleaun.github.io"
+        }
+    ],
+    "require": {
+        "wp-cli/wp-cli": "^2.0"
+    },
+    "require-dev": {
+        "wp-cli/wp-cli-tests": "^4.2 || ^5"
+    },
+    "config": {
+        "process-timeout": 7200,
+        "sort-packages": true,
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "johnpbloch/wordpress-core-installer": true
+        },
+        "lock": false
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "1.x-dev"
+        },
+        "commands": [
+            "scaffold camaleaun-plugin"
+        ]
+    },
+    "autoload": {
+        "classmap": [
+            "src/"
+        ],
+        "files": [
+            "wpcli-scaffold-plugin-command.php"
+        ]
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "scripts": {
+        "behat": "run-behat-tests",
+        "behat-rerun": "rerun-behat-tests",
+        "lint": "run-linter-tests",
+        "phpcs": "run-phpcs-tests",
+        "phpstan": "run-phpstan-tests",
+        "prepare-tests": "install-package-tests",
+        "test": [
+            "@lint",
+            "@phpcs",
+            "@phpstan",
+            "@behat"
+        ]
+    },
+    "support": {
+        "issues": "https://github.com/camaleaun/wpcli-scaffold-plugin-command/issues"
+    }
+}

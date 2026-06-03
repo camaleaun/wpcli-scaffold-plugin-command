@@ -1,0 +1,11 @@
+parameters:
+    level: 6
+    paths:
+        - src
+        - {{plugin_slug}}.php
+    bootstrapFiles:
+        - phpstan-bootstrap.php
+    excludePaths:
+        - vendor
+        - node_modules
+    checkMissingIterableValueType: false

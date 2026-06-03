@@ -1,0 +1,37 @@
+<?php
+/**
+ * Package bootstrap.
+ *
+ * @package {{plugin_package}}
+ * @since   0.1.0
+ */
+
+namespace {{plugin_namespace}};
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * Initialises all first-party packages.
+ *
+ * @since 0.1.0
+ */
+class Packages {
+
+	/**
+	 * Constructor — private, use ::init().
+	 *
+	 * @since 0.1.0
+	 */
+	private function __construct() {}
+
+	/**
+	 * Boot all packages.
+	 *
+	 * @since  0.1.0
+	 * @return void
+	 */
+	public static function init(): void {
+		// Register your packages here, e.g.:
+		// BlocksPackage::init();
+	}
+}

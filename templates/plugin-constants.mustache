@@ -1,0 +1,49 @@
+<?php
+/**
+ * Plugin-wide constants and path helpers.
+ *
+ * @package {{plugin_package}}
+ * @since   0.1.0
+ */
+
+namespace {{plugin_namespace}};
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * Centralises plugin paths and URLs.
+ *
+ * @since 0.1.0
+ */
+class Constants {
+
+	/**
+	 * Absolute path to the plugin root directory (with trailing slash).
+	 *
+	 * @since  0.1.0
+	 * @return string
+	 */
+	public static function plugin_path(): string {
+		return {{plugin_const_prefix}}_PATH;
+	}
+
+	/**
+	 * URL to the plugin root directory (with trailing slash).
+	 *
+	 * @since  0.1.0
+	 * @return string
+	 */
+	public static function plugin_url(): string {
+		return {{plugin_const_prefix}}_URL;
+	}
+
+	/**
+	 * Plugin version string.
+	 *
+	 * @since  0.1.0
+	 * @return string
+	 */
+	public static function version(): string {
+		return {{plugin_const_prefix}}_VERSION;
+	}
+}
