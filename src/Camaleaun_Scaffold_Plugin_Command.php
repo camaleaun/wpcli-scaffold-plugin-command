@@ -153,13 +153,18 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 
 		// Core plugin files.
 		$files_to_create = [
-			"{$plugin_dir}/{$plugin_slug}.php" => self::mustache_render( 'plugin.mustache', $data ),
+			"{$plugin_dir}/{$plugin_slug}.php"  => self::mustache_render( 'plugin.mustache', $data ),
 			"{$plugin_dir}/src/Autoloader.php" => self::mustache_render( 'plugin-autoloader.mustache', $data ),
 			"{$plugin_dir}/src/Packages.php"   => self::mustache_render( 'plugin-packages.mustache', $data ),
 			"{$plugin_dir}/src/Constants.php"  => self::mustache_render( 'plugin-constants.mustache', $data ),
 			"{$plugin_dir}/readme.txt"          => self::mustache_render( 'plugin-readme.mustache', $data ),
+			"{$plugin_dir}/README.md"           => self::mustache_render( 'plugin-readme-md.mustache', $data ),
 			"{$plugin_dir}/composer.json"       => self::mustache_render( 'plugin-composer.mustache', $data ),
+			"{$plugin_dir}/Gruntfile.js"        => self::mustache_render( 'plugin-gruntfile.mustache', $data ),
+			"{$plugin_dir}/package.json"        => self::mustache_render( 'plugin-package.mustache', $data ),
+			"{$plugin_dir}/blueprint-dev.json"  => self::mustache_render( 'plugin-blueprint-dev.mustache', $data ),
 			"{$plugin_dir}/.gitignore"          => self::mustache_render( 'plugin-gitignore.mustache', $data ),
+			"{$plugin_dir}/.gitattributes"      => self::mustache_render( 'plugin-gitattributes.mustache', $data ),
 			"{$plugin_dir}/.distignore"         => self::mustache_render( 'plugin-distignore.mustache', $data ),
 			"{$plugin_dir}/.editorconfig"       => self::mustache_render( 'plugin-editorconfig.mustache', $data ),
 		];
@@ -172,6 +177,7 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 			$test_files = [
 				"{$plugin_dir}/phpunit.xml"               => self::mustache_render( 'plugin-phpunit.mustache', $data ),
 				"{$plugin_dir}/phpstan.neon"              => self::mustache_render( 'plugin-phpstan.mustache', $data ),
+				"{$plugin_dir}/phpstan-bootstrap.php"     => self::mustache_render( 'plugin-phpstan-bootstrap.mustache', $data ),
 				"{$plugin_dir}/.phpcs.xml.dist"           => self::mustache_render( 'plugin-phpcs.mustache', $data ),
 				"{$plugin_dir}/tests/bootstrap.php"       => self::mustache_render( 'plugin-bootstrap.mustache', $data ),
 				"{$plugin_dir}/tests/stubs/functions.php" => self::mustache_render( 'plugin-stubs.mustache', $data ),
@@ -179,8 +185,9 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 
 			$ci = Utils\get_flag_value( $assoc_args, 'ci', 'github' );
 			if ( 'github' === $ci ) {
-				$test_files["{$plugin_dir}/.github/workflows/tests.yml"] =
-					self::mustache_render( 'plugin-ci-github.mustache', $data );
+				$test_files["{$plugin_dir}/.github/workflows/tests.yml"]    = self::mustache_render( 'plugin-ci-github.mustache', $data );
+				$test_files["{$plugin_dir}/.github/workflows/playground.yml"] = self::mustache_render( 'plugin-ci-playground.mustache', $data );
+				$test_files["{$plugin_dir}/.github/workflows/release.yml"]  = self::mustache_render( 'plugin-ci-release.mustache', $data );
 			} elseif ( 'gitlab' === $ci ) {
 				$test_files["{$plugin_dir}/.gitlab-ci.yml"] =
 					self::mustache_render( 'plugin-ci-gitlab.mustache', $data );

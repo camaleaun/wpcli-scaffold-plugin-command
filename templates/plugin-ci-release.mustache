@@ -1,0 +1,106 @@
+name: Release
+
+on:
+  push:
+    tags: ['[0-9]*']
+    branches: ['language/**']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version and trigger type
+        id: ctx
+        run: |
+          ref="${GITHUB_REF_NAME}"
+          if [[ "$ref" == language/* ]]; then
+            echo "tag=${ref#language/}" >> "$GITHUB_OUTPUT"
+            echo "is_lang_branch=true"  >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${ref}"           >> "$GITHUB_OUTPUT"
+            echo "is_lang_branch=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install gettext
+        run: sudo apt-get install -y gettext
+
+      # ── Plugin zip (tag pushes only) ────────────────────────────────────────
+
+      - name: Build plugin zip
+        if: steps.ctx.outputs.is_lang_branch == 'false'
+        run: |
+          mkdir -p /tmp/build
+          tag="${{ steps.ctx.outputs.tag }}"
+          git archive HEAD --prefix={{plugin_slug}}/ | tar xf - -C /tmp/build/
+          cd /tmp/build && zip -r "{{plugin_slug}}.${tag}.zip" {{plugin_slug}}
+
+      # ── Language packs ───────────────────────────────────────────────────────
+
+      - name: Resolve language source directory
+        id: lang_src
+        run: |
+          tag="${{ steps.ctx.outputs.tag }}"
+          is_lang="${{ steps.ctx.outputs.is_lang_branch }}"
+          if [[ "$is_lang" == "true" ]]; then
+            echo "dir=." >> "$GITHUB_OUTPUT"
+          else
+            branch="language/${tag}"
+            if git ls-remote --exit-code origin "refs/heads/${branch}" > /dev/null 2>&1; then
+              mkdir /tmp/lang-src
+              cd /tmp/lang-src
+              git init
+              git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+              git fetch --depth=1 origin "refs/heads/${branch}"
+              git checkout FETCH_HEAD
+              cd -
+              echo "dir=/tmp/lang-src" >> "$GITHUB_OUTPUT"
+            else
+              echo "dir=" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Build language packs
+        if: steps.lang_src.outputs.dir != ''
+        run: |
+          mkdir -p /tmp/langs
+          for po in "${{ steps.lang_src.outputs.dir }}/{{plugin_slug}}-*.po"; do
+            [ -f "$po" ] || continue
+            locale=$(basename "$po" .po | sed 's/^{{plugin_slug}}-//')
+            msgfmt "$po" -o "/tmp/langs/{{plugin_slug}}-${locale}.mo"
+            cp "$po" "/tmp/langs/{{plugin_slug}}-${locale}.po"
+          done
+
+      - name: Package language zips and collect asset paths
+        id: files
+        run: |
+          files=""
+          tag="${{ steps.ctx.outputs.tag }}"
+          plugin_zip="/tmp/build/{{plugin_slug}}.${tag}.zip"
+          [ -f "$plugin_zip" ] && files="$plugin_zip"
+          for po in /tmp/langs/{{plugin_slug}}-*.po; do
+            [ -f "$po" ] || continue
+            locale=$(basename "$po" .po | sed 's/^{{plugin_slug}}-//')
+            (cd /tmp/langs && zip "{{plugin_slug}}.${tag}-${locale}.zip" \
+              "{{plugin_slug}}-${locale}.po" \
+              "{{plugin_slug}}-${locale}.mo")
+            files="${files:+$files,}/tmp/langs/{{plugin_slug}}.${tag}-${locale}.zip"
+          done
+          echo "paths=$files" >> "$GITHUB_OUTPUT"
+          [ -n "$files" ] \
+            && echo "has_files=true"  >> "$GITHUB_OUTPUT" \
+            || echo "has_files=false" >> "$GITHUB_OUTPUT"
+
+      - name: Upload assets to release
+        if: steps.files.outputs.has_files == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ctx.outputs.tag }}
+          files: ${{ steps.files.outputs.paths }}
+          generate_release_notes: ${{ steps.ctx.outputs.is_lang_branch == 'false' }}

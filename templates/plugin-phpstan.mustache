@@ -1,11 +1,18 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
 parameters:
     level: 6
     paths:
         - src
         - {{plugin_slug}}.php
+    excludePaths:
+        - vendor/
+        - tests/
+        - node_modules/
     bootstrapFiles:
         - phpstan-bootstrap.php
-    excludePaths:
-        - vendor
-        - node_modules
+    parallel:
+        maximumNumberOfProcesses: 1
+    treatPhpDocTypesAsCertain: false
     checkMissingIterableValueType: false

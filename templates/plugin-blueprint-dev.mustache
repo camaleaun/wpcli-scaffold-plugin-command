@@ -1,0 +1,22 @@
+{
+  "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+  "preferredVersions": {
+    "php": "8.2",
+    "wp": "latest"
+  },
+  "steps": [
+    {
+      "step": "login"
+    },
+    {
+      "step": "installPlugin",
+      "pluginData": {
+        "resource": "url",
+        "url": "https://github-artifact-proxy.workers.dev/?owner={{plugin_author_uri_slug}}&repo={{plugin_slug}}&artifact=plugin-zip&file={{plugin_slug}}.zip"
+      },
+      "options": {
+        "activate": true
+      }
+    }
+  ]
+}
