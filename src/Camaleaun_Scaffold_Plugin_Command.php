@@ -6,8 +6,8 @@ use WP_CLI\Utils;
  * Generates opinionated starter code for a WordPress plugin.
  *
  * Produces a PSR-4 plugin skeleton based on the camaleaun convention:
- * src/ layout, DI container, unit-only PHPUnit bootstrap (no live WP
- * install required), PHPStan level 6, PHPCS/WPCS and Playwright E2E.
+ * src/ layout, Composer autoloader, unit-only PHPUnit bootstrap (no live
+ * WP install required), PHPStan level 6, PHPCS/WPCS, and GitHub Actions CI.
  *
  * ## EXAMPLES
  *
@@ -41,6 +41,7 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 	 * * `.phpcs.xml.dist` is a collection of PHP_CodeSniffer rules.
 	 * * `tests/bootstrap.php` runs unit tests without a live WP install.
 	 * * `tests/stubs/functions.php` contains minimal WordPress function stubs.
+	 * * `.github/workflows/tests.yml` is the GitHub Actions CI workflow (default CI).
 	 *
 	 * ## OPTIONS
 	 *
@@ -104,39 +105,46 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 	 * @when before_wp_load
 	 */
 	public function __invoke( $args, $assoc_args ) {
-		$plugin_slug    = $args[0];
+		$plugin_slug = $args[0];
+
+		// Validate slug — same rules as the official scaffold plugin command.
+		if ( in_array( $plugin_slug, [ '.', '..' ], true ) ) {
+			WP_CLI::error( "Invalid plugin slug specified. The slug cannot be '.' or '..'." );
+		}
+		if ( ! preg_match( '/^[a-zA-Z0-9_-]+$/', $plugin_slug ) ) {
+			WP_CLI::error( "Invalid plugin slug specified. The slug can only contain alphanumeric characters, underscores, and dashes." );
+		}
+
 		$plugin_name    = ucwords( str_replace( '-', ' ', $plugin_slug ) );
 		$plugin_package = str_replace( ' ', '_', $plugin_name );
 		$namespace      = str_replace( ' ', '\\', $plugin_name );
 		$namespace_test = $namespace . '\\Tests';
 		$const_prefix   = strtoupper( str_replace( '-', '_', $plugin_slug ) );
 
-		if ( in_array( $plugin_slug, [ '.', '..' ], true ) ) {
-			WP_CLI::error( "Invalid plugin slug specified. The slug cannot be '.' or '..'." );
-		}
-
 		$defaults = [
-			'plugin_slug'         => $plugin_slug,
-			'plugin_name'         => $plugin_name,
-			'plugin_package'      => $plugin_package,
-			'plugin_namespace'    => $namespace,
+			'plugin_slug'           => $plugin_slug,
+			'plugin_name'           => $plugin_name,
+			'plugin_package'        => $plugin_package,
+			'plugin_namespace'      => $namespace,
 			'plugin_namespace_test' => $namespace_test,
-			'plugin_const_prefix' => $const_prefix,
-			'plugin_description'  => 'PLUGIN DESCRIPTION HERE',
-			'plugin_author'       => 'YOUR NAME HERE',
-			'plugin_author_uri'   => 'YOUR SITE HERE',
-			'plugin_uri'          => 'PLUGIN SITE HERE',
-			'plugin_tested_up_to' => $this->get_wp_version(),
+			'plugin_const_prefix'   => $const_prefix,
+			'plugin_description'    => 'PLUGIN DESCRIPTION HERE',
+			'plugin_author'         => 'YOUR NAME HERE',
+			'plugin_author_uri'     => 'YOUR SITE HERE',
+			'plugin_uri'            => 'PLUGIN SITE HERE',
+			'plugin_tested_up_to'   => $this->get_wp_version(),
 		];
-		$data = array_merge( $defaults, array_intersect_key( $assoc_args, $defaults ) );
-		$data['textdomain'] = $plugin_slug;
+
+		// Merge only the keys that exist in $defaults (same as wp_parse_args semantics).
+		$data                = array_merge( $defaults, array_intersect_key( $assoc_args, $defaults ) );
+		$data['textdomain']  = $plugin_slug;
 
 		// Resolve target directory.
 		if ( ! empty( $assoc_args['dir'] ) ) {
 			if ( ! is_dir( $assoc_args['dir'] ) ) {
 				WP_CLI::error( "Cannot create plugin in directory that doesn't exist." );
 			}
-			$plugin_dir = "{$assoc_args['dir']}/{$plugin_slug}";
+			$plugin_dir = rtrim( $assoc_args['dir'], '/' ) . "/{$plugin_slug}";
 		} else {
 			$plugin_dir = $this->resolve_plugins_dir() . "/{$plugin_slug}";
 		}
@@ -145,15 +153,15 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 
 		// Core plugin files.
 		$files_to_create = [
-			"{$plugin_dir}/{$plugin_slug}.php"    => self::mustache_render( 'plugin.mustache', $data ),
-			"{$plugin_dir}/src/Autoloader.php"    => self::mustache_render( 'plugin-autoloader.mustache', $data ),
-			"{$plugin_dir}/src/Packages.php"      => self::mustache_render( 'plugin-packages.mustache', $data ),
-			"{$plugin_dir}/src/Constants.php"     => self::mustache_render( 'plugin-constants.mustache', $data ),
-			"{$plugin_dir}/readme.txt"             => self::mustache_render( 'plugin-readme.mustache', $data ),
-			"{$plugin_dir}/composer.json"          => self::mustache_render( 'plugin-composer.mustache', $data ),
-			"{$plugin_dir}/.gitignore"             => self::mustache_render( 'plugin-gitignore.mustache', $data ),
-			"{$plugin_dir}/.distignore"            => self::mustache_render( 'plugin-distignore.mustache', $data ),
-			"{$plugin_dir}/.editorconfig"          => self::mustache_render( 'plugin-editorconfig.mustache', $data ),
+			"{$plugin_dir}/{$plugin_slug}.php" => self::mustache_render( 'plugin.mustache', $data ),
+			"{$plugin_dir}/src/Autoloader.php" => self::mustache_render( 'plugin-autoloader.mustache', $data ),
+			"{$plugin_dir}/src/Packages.php"   => self::mustache_render( 'plugin-packages.mustache', $data ),
+			"{$plugin_dir}/src/Constants.php"  => self::mustache_render( 'plugin-constants.mustache', $data ),
+			"{$plugin_dir}/readme.txt"          => self::mustache_render( 'plugin-readme.mustache', $data ),
+			"{$plugin_dir}/composer.json"       => self::mustache_render( 'plugin-composer.mustache', $data ),
+			"{$plugin_dir}/.gitignore"          => self::mustache_render( 'plugin-gitignore.mustache', $data ),
+			"{$plugin_dir}/.distignore"         => self::mustache_render( 'plugin-distignore.mustache', $data ),
+			"{$plugin_dir}/.editorconfig"       => self::mustache_render( 'plugin-editorconfig.mustache', $data ),
 		];
 
 		$files_written = $this->create_files( $files_to_create, $force );
@@ -162,66 +170,82 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 		// Test files (unless --skip-tests).
 		if ( ! Utils\get_flag_value( $assoc_args, 'skip-tests' ) ) {
 			$test_files = [
-				"{$plugin_dir}/phpunit.xml"                   => self::mustache_render( 'plugin-phpunit.mustache', $data ),
-				"{$plugin_dir}/phpstan.neon"                  => self::mustache_render( 'plugin-phpstan.mustache', $data ),
-				"{$plugin_dir}/.phpcs.xml.dist"               => self::mustache_render( 'plugin-phpcs.mustache', $data ),
-				"{$plugin_dir}/tests/bootstrap.php"           => self::mustache_render( 'plugin-bootstrap.mustache', $data ),
-				"{$plugin_dir}/tests/stubs/functions.php"     => self::mustache_render( 'plugin-stubs.mustache', $data ),
+				"{$plugin_dir}/phpunit.xml"               => self::mustache_render( 'plugin-phpunit.mustache', $data ),
+				"{$plugin_dir}/phpstan.neon"              => self::mustache_render( 'plugin-phpstan.mustache', $data ),
+				"{$plugin_dir}/.phpcs.xml.dist"           => self::mustache_render( 'plugin-phpcs.mustache', $data ),
+				"{$plugin_dir}/tests/bootstrap.php"       => self::mustache_render( 'plugin-bootstrap.mustache', $data ),
+				"{$plugin_dir}/tests/stubs/functions.php" => self::mustache_render( 'plugin-stubs.mustache', $data ),
 			];
 
-			// CI configuration.
 			$ci = Utils\get_flag_value( $assoc_args, 'ci', 'github' );
 			if ( 'github' === $ci ) {
 				$test_files["{$plugin_dir}/.github/workflows/tests.yml"] =
 					self::mustache_render( 'plugin-ci-github.mustache', $data );
+			} elseif ( 'gitlab' === $ci ) {
+				$test_files["{$plugin_dir}/.gitlab-ci.yml"] =
+					self::mustache_render( 'plugin-ci-gitlab.mustache', $data );
+			} elseif ( 'circle' === $ci ) {
+				$test_files["{$plugin_dir}/.circleci/config.yml"] =
+					self::mustache_render( 'plugin-ci-circle.mustache', $data );
+			} elseif ( 'bitbucket' === $ci ) {
+				$test_files["{$plugin_dir}/bitbucket-pipelines.yml"] =
+					self::mustache_render( 'plugin-ci-bitbucket.mustache', $data );
 			}
 
 			$test_files_written = $this->create_files( $test_files, $force );
 			$this->log_whether_files_written( $test_files_written, 'All test files were skipped.', 'Created test files.' );
 		}
 
-		// Activate.
+		// Activate — spawn a new wp process so WP is loaded for plugin activation.
 		if ( Utils\get_flag_value( $assoc_args, 'activate' ) ) {
-			WP_CLI::run_command( [ 'plugin', 'activate', $plugin_slug ], [], true, true );
+			WP_CLI::runcommand( "plugin activate {$plugin_slug}" );
 		} elseif ( Utils\get_flag_value( $assoc_args, 'activate-network' ) ) {
-			WP_CLI::run_command( [ 'plugin', 'activate', $plugin_slug ], [ 'network' => true ], true, true );
+			WP_CLI::runcommand( "plugin activate {$plugin_slug} --network" );
 		}
 	}
 
 	// ── Helpers ──────────────────────────────────────────────────────────────────
 
 	/**
-	 * Resolves the plugins directory without requiring WP to be loaded.
+	 * Resolves the plugins directory from WP-CLI config without requiring WP to be loaded.
 	 */
 	private function resolve_plugins_dir(): string {
-		$wp_path = WP_CLI::get_runner()->config['path'] ?? getcwd();
+		$runner      = WP_CLI::get_runner();
+		$wp_path     = $runner->config['path'] ?? getcwd();
 		$plugins_dir = rtrim( $wp_path, '/' ) . '/wp-content/plugins';
+
 		if ( ! is_dir( $plugins_dir ) ) {
 			if ( ! mkdir( $plugins_dir, 0755, true ) ) {
 				WP_CLI::error( "Could not create plugins directory: {$plugins_dir}" );
 			}
 		}
+
 		return $plugins_dir;
 	}
 
 	/**
-	 * Returns the WordPress version without requiring WP to be loaded.
+	 * Returns the WordPress version by reading wp-includes/version.php directly.
+	 * Falls back to '6.0' when WP is not present or the file is unreadable.
 	 */
 	private function get_wp_version(): string {
-		$wp_path = WP_CLI::get_runner()->config['path'] ?? getcwd();
+		$runner       = WP_CLI::get_runner();
+		$wp_path      = $runner->config['path'] ?? getcwd();
 		$version_file = rtrim( $wp_path, '/' ) . '/wp-includes/version.php';
-		if ( file_exists( $version_file ) ) {
+
+		if ( is_readable( $version_file ) ) {
 			$wp_version = '';
-			require $version_file;
+			require $version_file; // defines $wp_version, $wp_db_version, etc.
 			if ( '' !== $wp_version ) {
 				return $wp_version;
 			}
 		}
+
 		return '6.0';
 	}
 
 	/**
 	 * @param array<string,string> $files_to_create
+	 * @param bool                 $force
 	 * @return array<string>
 	 */
 	private function create_files( array $files_to_create, bool $force ): array {
@@ -235,11 +259,14 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 
 			$dir = dirname( $filename );
 			if ( ! is_dir( $dir ) ) {
-				$make = function_exists( 'wp_mkdir_p' ) ? wp_mkdir_p( $dir ) : mkdir( $dir, 0755, true );
-				if ( ! $make ) {
+				$created = mkdir( $dir, 0755, true );
+				if ( ! $created ) {
 					WP_CLI::error( "Could not create directory: {$dir}" );
 				}
 			}
+
+			// Normalise line endings, same as the official scaffold command.
+			$contents = str_replace( "\r\n", "\n", $contents );
 
 			if ( false === file_put_contents( $filename, $contents ) ) {
 				WP_CLI::error( "Error creating file: {$filename}" );
@@ -252,18 +279,19 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 	}
 
 	private function prompt_if_files_will_be_overwritten( string $filename, bool $force ): bool {
-		$should_write_file = true;
-
 		if ( ! file_exists( $filename ) ) {
 			return true;
 		}
 
-		WP_CLI::log( 'File already exists: ' . $filename );
+		WP_CLI::warning( 'File already exists.' );
+		WP_CLI::log( $filename );
 
 		if ( ! $force ) {
-			$question         = 'Skip this file, or replace it with a newly generated copy?';
-			$response         = Utils\prompt( $question );
-			$should_write_file = ( 'r' === strtolower( $response ) );
+			$question          = 'Skip this file, or replace it with a newly generated copy? [s/r]: ';
+			$response          = Utils\prompt( $question );
+			$should_write_file = ( 'r' === strtolower( trim( $response ) ) );
+		} else {
+			$should_write_file = true;
 		}
 
 		$outcome = $should_write_file ? 'Replacing' : 'Skipping';

@@ -1,0 +1,32 @@
+image: php:8.2
+
+stages:
+  - test
+
+variables:
+  MYSQL_DATABASE: wordpress_tests
+  MYSQL_ROOT_PASSWORD: root
+
+cache:
+  paths:
+    - vendor/
+
+before_script:
+  - apt-get update -qq && apt-get install -y -qq git unzip
+  - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+  - composer install --prefer-dist --no-progress
+
+phpunit:
+  stage: test
+  script:
+    - composer test
+
+phpstan:
+  stage: test
+  script:
+    - composer analyse
+
+phpcs:
+  stage: test
+  script:
+    - composer lint
