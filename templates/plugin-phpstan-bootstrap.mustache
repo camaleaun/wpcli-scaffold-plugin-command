@@ -10,3 +10,7 @@ define( 'WPINC', 'wp-includes' );
 define( '{{plugin_const_prefix}}_VERSION', '0.1.0' );
 define( '{{plugin_const_prefix}}_PATH', __DIR__ . '/' );
 define( '{{plugin_const_prefix}}_URL', 'https://example.com/wp-content/plugins/{{plugin_slug}}/' );
+
+if ( ! function_exists( 'selfd' ) ) {
+	function selfd( string $file ): void {} // phpcs:ignore
+}

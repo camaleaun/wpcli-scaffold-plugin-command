@@ -16,11 +16,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Build plugin zip
         run: |
           mkdir -p /tmp/build
           git archive HEAD --prefix={{plugin_slug}}/ | tar xf - -C /tmp/build/
+          git -C lib/selfdirectory archive HEAD \
+            --prefix={{plugin_slug}}/lib/selfdirectory/ \
+            -- class-selfdirectory.php \
+            | tar xf - -C /tmp/build/
           cd /tmp/build && zip -r {{plugin_slug}}.zip {{plugin_slug}}
 
       - name: Upload plugin zip

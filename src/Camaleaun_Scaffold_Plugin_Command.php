@@ -165,6 +165,7 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 			"{$plugin_dir}/blueprint-dev.json"  => self::mustache_render( 'plugin-blueprint-dev.mustache', $data ),
 			"{$plugin_dir}/.gitignore"          => self::mustache_render( 'plugin-gitignore.mustache', $data ),
 			"{$plugin_dir}/.gitattributes"      => self::mustache_render( 'plugin-gitattributes.mustache', $data ),
+			"{$plugin_dir}/.gitmodules"         => self::mustache_render( 'plugin-gitmodules.mustache', $data ),
 			"{$plugin_dir}/.distignore"         => self::mustache_render( 'plugin-distignore.mustache', $data ),
 			"{$plugin_dir}/.editorconfig"       => self::mustache_render( 'plugin-editorconfig.mustache', $data ),
 		];
@@ -203,6 +204,9 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 			$this->log_whether_files_written( $test_files_written, 'All test files were skipped.', 'Created test files.' );
 		}
 
+		// Clone selfdirectory submodule.
+		$this->init_selfdirectory( $plugin_dir );
+
 		// Activate — spawn a new wp process so WP is loaded for plugin activation.
 		if ( Utils\get_flag_value( $assoc_args, 'activate' ) ) {
 			WP_CLI::runcommand( "plugin activate {$plugin_slug}" );
@@ -212,6 +216,42 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 	}
 
 	// ── Helpers ──────────────────────────────────────────────────────────────────
+
+	/**
+	 * Clones lib/selfdirectory into the plugin directory.
+	 *
+	 * Uses git clone rather than git submodule add because the latter requires
+	 * the plugin dir itself to already be inside a git repository, which is not
+	 * guaranteed at scaffold time. The .gitmodules file is written by create_files();
+	 * the developer runs `git submodule update --init` or commits lib/selfdirectory
+	 * manually after initialising the plugin repo.
+	 */
+	private function init_selfdirectory( string $plugin_dir ): void {
+		$lib_dir  = $plugin_dir . '/lib/selfdirectory';
+		$repo_url = 'https://github.com/fervidum/selfdirectory';
+
+		if ( is_dir( $lib_dir . '/.git' ) || is_file( $lib_dir . '/class-selfdirectory.php' ) ) {
+			WP_CLI::log( 'lib/selfdirectory already exists — skipping clone.' );
+			return;
+		}
+
+		if ( ! is_dir( $plugin_dir . '/lib' ) ) {
+			mkdir( $plugin_dir . '/lib', 0755, true );
+		}
+
+		WP_CLI::log( 'Cloning lib/selfdirectory...' );
+
+		$exit_code = null;
+		$output    = [];
+		exec( 'git clone --depth=1 ' . escapeshellarg( $repo_url ) . ' ' . escapeshellarg( $lib_dir ) . ' 2>&1', $output, $exit_code );
+
+		if ( 0 !== $exit_code ) {
+			WP_CLI::warning( 'Could not clone lib/selfdirectory: ' . implode( ' ', $output ) );
+			WP_CLI::log( "Run manually: git submodule add {$repo_url} lib/selfdirectory" );
+		} else {
+			WP_CLI::log( 'Cloned lib/selfdirectory.' );
+		}
+	}
 
 	/**
 	 * Resolves the plugins directory without requiring WP to be loaded.

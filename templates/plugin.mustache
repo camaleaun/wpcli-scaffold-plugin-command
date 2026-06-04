@@ -23,6 +23,7 @@ define( '{{plugin_const_prefix}}_VERSION', '0.1.0' );
 define( '{{plugin_const_prefix}}_PATH', plugin_dir_path( __FILE__ ) );
 define( '{{plugin_const_prefix}}_URL', plugin_dir_url( __FILE__ ) );
 
+require_once {{plugin_const_prefix}}_PATH . 'lib/selfdirectory/class-selfdirectory.php';
 require_once {{plugin_const_prefix}}_PATH . 'src/Autoloader.php';
 require_once {{plugin_const_prefix}}_PATH . 'src/Packages.php';
 
@@ -35,5 +36,12 @@ add_action(
 	'init',
 	function () {
 		load_plugin_textdomain( '{{textdomain}}', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+	}
+);
+
+add_action(
+	'selfd_register',
+	function () {
+		selfd( __FILE__ );
 	}
 );

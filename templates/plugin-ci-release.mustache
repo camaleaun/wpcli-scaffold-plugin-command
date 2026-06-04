@@ -14,6 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          submodules: recursive
           fetch-depth: 0
 
       - name: Resolve version and trigger type
@@ -39,6 +40,10 @@ jobs:
           mkdir -p /tmp/build
           tag="${{ steps.ctx.outputs.tag }}"
           git archive HEAD --prefix={{plugin_slug}}/ | tar xf - -C /tmp/build/
+          git -C lib/selfdirectory archive HEAD \
+            --prefix={{plugin_slug}}/lib/selfdirectory/ \
+            -- class-selfdirectory.php \
+            | tar xf - -C /tmp/build/
           cd /tmp/build && zip -r "{{plugin_slug}}.${tag}.zip" {{plugin_slug}}
 
       # ── Language packs ───────────────────────────────────────────────────────
