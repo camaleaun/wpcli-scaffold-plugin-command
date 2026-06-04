@@ -30,12 +30,12 @@ jobs:
             echo "✔  $label: $(grep -oE "$pattern" "$file" | head -1)"
           }
 
-          check_field "Plugin Name"       "Plugin Name:"                        "<%plugin_slug%>.php"
-          check_field "Version"           "Version:[[:space:]]+[0-9]+\.[0-9]"  "<%plugin_slug%>.php"
+          check_field "Plugin Name"       "Plugin Name:"                      "<%plugin_slug%>.php"
+          check_field "Version"           "Version:[[:space:]]+[0-9]+\.[0-9]" "<%plugin_slug%>.php"
           check_field "Requires at least" "Requires at least:[[:space:]]+[0-9]" "<%plugin_slug%>.php"
-          check_field "Requires PHP"      "Requires PHP:[[:space:]]+[0-9]"      "<%plugin_slug%>.php"
-          check_field "Tested up to"      "Tested up to:[[:space:]]+[0-9]"      "<%plugin_slug%>.php"
-          check_field "License"           "License:[[:space:]]+GPL"             "<%plugin_slug%>.php"
+          check_field "Requires PHP"      "Requires PHP:[[:space:]]+[0-9]"     "<%plugin_slug%>.php"
+          check_field "Tested up to"      "Tested up to:[[:space:]]+[0-9]"     "<%plugin_slug%>.php"
+          check_field "License"           "License:[[:space:]]+GPL"            "<%plugin_slug%>.php"
           check_field "readme Stable tag" "Stable tag:[[:space:]]+[0-9]+\.[0-9]" "readme.txt"
 
       - name: Version == Stable tag
@@ -56,7 +56,7 @@ jobs:
           README=$(grep -oE "Requires PHP:[[:space:]]+[0-9][^[:space:]]*" readme.txt | grep -oE "[0-9][^[:space:]]*")
           [ "$MAIN" = "$README" ] && echo "✔  Requires PHP: $MAIN" || { echo "✗  Mismatch: $MAIN vs $README"; exit 1; }
 
-  # ── README.md in sync with readme.txt ────────────────────────────────────────
+  # ── README.md in sync with readme.txt ─────────────────────────────────────────
   readme:
     name: README.md in sync
     runs-on: ubuntu-latest
@@ -203,9 +203,9 @@ jobs:
 
       - name: Run E2E tests
         env:
-          BASE_URL: ${{ secrets.BASE_URL }}
-          ADMIN_USER: ${{ secrets.ADMIN_USER }}
-          ADMIN_PASS: ${{ secrets.ADMIN_PASS }}
+          <%plugin_const_prefix%>_BASE_URL: ${{ secrets.<%plugin_const_prefix%>_BASE_URL }}
+          <%plugin_const_prefix%>_ADMIN_USER: ${{ secrets.<%plugin_const_prefix%>_ADMIN_USER }}
+          <%plugin_const_prefix%>_ADMIN_PASS: ${{ secrets.<%plugin_const_prefix%>_ADMIN_PASS }}
         run: npm run test:e2e
 
       - name: Upload Playwright report
