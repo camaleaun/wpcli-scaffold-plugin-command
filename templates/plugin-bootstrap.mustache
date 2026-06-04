@@ -1,9 +1,9 @@
 <?php
 /**
- * PHPUnit bootstrap — loads Brain\Monkey and minimal WP stubs.
+ * PHPUnit bootstrap — loads Brain\Monkey and minimal WP stubs, then requires plugin files.
  *
- * @package {{plugin_namespace_test}}
- * @since   0.1.0
+ * @package {{plugin_namespace}}
+ * @license GPL-2.0-or-later
  */
 
 declare( strict_types=1 );
@@ -22,3 +22,6 @@ defined( 'ABSPATH' ) || define( 'ABSPATH', sys_get_temp_dir() . '/wordpress/' );
 define( '{{plugin_const_prefix}}_VERSION', '0.1.0' );
 define( '{{plugin_const_prefix}}_PATH', dirname( __DIR__ ) . '/' );
 define( '{{plugin_const_prefix}}_URL', 'http://example.com/wp-content/plugins/{{plugin_slug}}/' );
+
+// Load plugin includes here as the plugin grows, e.g.:
+// require_once {{plugin_const_prefix}}_PATH . 'includes/class-foo.php';

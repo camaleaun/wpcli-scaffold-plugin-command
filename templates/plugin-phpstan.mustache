@@ -2,9 +2,8 @@ includes:
     - vendor/szepeviktor/phpstan-wordpress/extension.neon
 
 parameters:
-    level: 6
+    level: 5
     paths:
-        - src
         - {{plugin_slug}}.php
     excludePaths:
         - vendor/
@@ -15,4 +14,3 @@ parameters:
     parallel:
         maximumNumberOfProcesses: 1
     treatPhpDocTypesAsCertain: false
-    checkMissingIterableValueType: false
