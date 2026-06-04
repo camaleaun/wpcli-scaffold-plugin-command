@@ -202,7 +202,6 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 	 * @return array<string>
 	 */
 	private function create_files( array $files_to_create, bool $force ): array {
-		$wp_filesystem = $this->init_wp_filesystem();
 		$files_written = [];
 
 		foreach ( $files_to_create as $filename => $contents ) {
@@ -211,9 +210,15 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 				continue;
 			}
 
-			$wp_filesystem->mkdir( dirname( $filename ) );
+			$dir = dirname( $filename );
+			if ( ! is_dir( $dir ) ) {
+				$make = function_exists( 'wp_mkdir_p' ) ? wp_mkdir_p( $dir ) : mkdir( $dir, 0755, true );
+				if ( ! $make ) {
+					WP_CLI::error( "Could not create directory: {$dir}" );
+				}
+			}
 
-			if ( ! $wp_filesystem->put_contents( $filename, $contents ) ) {
+			if ( false === file_put_contents( $filename, $contents ) ) {
 				WP_CLI::error( "Error creating file: {$filename}" );
 			}
 
@@ -253,12 +258,6 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 		} else {
 			WP_CLI::success( $success_message );
 		}
-	}
-
-	private function init_wp_filesystem(): WP_Filesystem_Base {
-		global $wp_filesystem;
-		WP_Filesystem();
-		return $wp_filesystem;
 	}
 
 	private static function mustache_render( string $template, array $data = [] ): string {
