@@ -207,12 +207,12 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 	// ── Helpers ──────────────────────────────────────────────────────────────────
 
 	/**
-	 * Resolves the plugins directory from WP-CLI config without requiring WP to be loaded.
+	 * Resolves the plugins directory without requiring WP to be loaded.
+	 * Walks up from cwd looking for wp-load.php, same heuristic WP-CLI uses.
 	 */
 	private function resolve_plugins_dir(): string {
-		$runner      = WP_CLI::get_runner();
-		$wp_path     = $runner->config['path'] ?? getcwd();
-		$plugins_dir = rtrim( $wp_path, '/' ) . '/wp-content/plugins';
+		$wp_root     = $this->find_wp_root();
+		$plugins_dir = $wp_root . '/wp-content/plugins';
 
 		if ( ! is_dir( $plugins_dir ) ) {
 			if ( ! mkdir( $plugins_dir, 0755, true ) ) {
@@ -228,9 +228,8 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 	 * Falls back to '6.0' when WP is not present or the file is unreadable.
 	 */
 	private function get_wp_version(): string {
-		$runner       = WP_CLI::get_runner();
-		$wp_path      = $runner->config['path'] ?? getcwd();
-		$version_file = rtrim( $wp_path, '/' ) . '/wp-includes/version.php';
+		$wp_root      = $this->find_wp_root();
+		$version_file = $wp_root . '/wp-includes/version.php';
 
 		if ( is_readable( $version_file ) ) {
 			$wp_version = '';
@@ -241,6 +240,38 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 		}
 
 		return '6.0';
+	}
+
+	/**
+	 * Finds the WordPress root directory.
+	 *
+	 * Priority:
+	 * 1. --path flag passed to WP-CLI.
+	 * 2. Walk up from cwd until wp-load.php is found (same heuristic WP-CLI uses).
+	 * 3. Fall back to cwd.
+	 */
+	private function find_wp_root(): string {
+		$runner = WP_CLI::get_runner();
+
+		// Explicit --path always wins.
+		if ( ! empty( $runner->config['path'] ) ) {
+			return rtrim( $runner->config['path'], '/' );
+		}
+
+		// Walk up from cwd looking for wp-load.php.
+		$dir = getcwd();
+		while ( true ) {
+			if ( file_exists( $dir . '/wp-load.php' ) ) {
+				return $dir;
+			}
+			$parent = dirname( $dir );
+			if ( $parent === $dir ) {
+				break; // reached filesystem root
+			}
+			$dir = $parent;
+		}
+
+		return getcwd();
 	}
 
 	/**
