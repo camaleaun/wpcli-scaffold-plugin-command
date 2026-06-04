@@ -119,39 +119,39 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 			WP_CLI::error( "Invalid plugin slug specified. The slug can only contain alphanumeric characters, underscores, and dashes." );
 		}
 
-		$plugin_name    = ucwords( str_replace( '-', ' ', $plugin_slug ) );
-		$plugin_package = str_replace( ' ', '_', $plugin_name );
-		$namespace      = str_replace( ' ', '\\', $plugin_name );
-		$namespace_test = $namespace . '\\Tests';
-		$const_prefix   = strtoupper( str_replace( '-', '_', $plugin_slug ) );
+		$const_prefix = strtoupper( str_replace( '-', '_', $plugin_slug ) );
 
 		$defaults = [
-			'plugin_slug'           => $plugin_slug,
-			'plugin_name'           => $plugin_name,
-			'plugin_package'        => $plugin_package,
-			'plugin_namespace'      => $namespace,
-			'plugin_namespace_test' => $namespace_test,
-			'plugin_const_prefix'   => $const_prefix,
-			'plugin_description'    => 'PLUGIN DESCRIPTION HERE',
-			'plugin_author'         => 'YOUR NAME HERE',
-			'plugin_author_uri'     => 'YOUR SITE HERE',
-			'plugin_uri'            => 'PLUGIN SITE HERE',
-			'plugin_tested_up_to'   => $this->get_wp_version(),
-			'plugin_github_owner'   => '',
+			'plugin_slug'         => $plugin_slug,
+			'plugin_name'         => ucwords( str_replace( '-', ' ', $plugin_slug ) ),
+			'plugin_description'  => 'PLUGIN DESCRIPTION HERE',
+			'plugin_author'       => 'YOUR NAME HERE',
+			'plugin_author_uri'   => 'YOUR SITE HERE',
+			'plugin_uri'          => 'PLUGIN SITE HERE',
+			'plugin_tested_up_to' => $this->get_wp_version(),
+			'plugin_github_owner' => '',
 		];
 
-		// Merge only the keys that exist in $defaults (same as wp_parse_args semantics).
-		$data               = array_merge( $defaults, array_intersect_key( $assoc_args, $defaults ) );
-		$data['textdomain'] = $plugin_slug;
+		// Merge user-supplied flags over defaults.
+		$data = array_merge( $defaults, array_intersect_key( $assoc_args, $defaults ) );
 
-		// JSON needs \\ to represent a single backslash — escape namespaces for composer.json.
-		$data['plugin_namespace_json']      = str_replace( '\\', '\\\\', $data['plugin_namespace'] );
-		$data['plugin_namespace_test_json'] = str_replace( '\\', '\\\\', $data['plugin_namespace_test'] );
+		// Derive namespace and package from the final plugin_name (after --plugin_name override).
+		// 'Axell Core' → namespace 'Axell\\Core', package 'Axell_Core'.
+		// 'Axellcore'  → namespace 'Axellcore',     package 'Axellcore'.
+		$data['plugin_package']        = str_replace( ' ', '_', $data['plugin_name'] );
+		$data['plugin_namespace']      = str_replace( ' ', '\\', $data['plugin_name'] );
+		$data['plugin_namespace_test'] = $data['plugin_namespace'] . '\\Tests';
+		$data['plugin_const_prefix']   = $const_prefix;
+		$data['textdomain']            = $plugin_slug;
 
 		// Derive GitHub owner from plugin_author_uri if not explicitly provided.
 		if ( '' === $data['plugin_github_owner'] ) {
 			$data['plugin_github_owner'] = $this->extract_github_owner( $data['plugin_author_uri'] );
 		}
+
+		// JSON needs \\\\ to represent a single backslash — escape namespaces for composer.json.
+		$data['plugin_namespace_json']      = str_replace( '\\', '\\\\', $data['plugin_namespace'] );
+		$data['plugin_namespace_test_json'] = str_replace( '\\', '\\\\', $data['plugin_namespace_test'] );
 
 		// Resolve target directory.
 		if ( ! empty( $assoc_args['dir'] ) ) {
