@@ -146,7 +146,7 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 		// Derive namespace and package from the final plugin_name (after --plugin_name override).
 		// 'Axell Core' → namespace 'AxellCore', package 'AxellCore'.
 		// 'My Plugin'  → namespace 'MyPlugin',  package 'MyPlugin'.
-		$data['plugin_package']        = ucfirst( str_replace( '-', '', $plugin_slug ) );
+		$data['plugin_package']        = str_replace( ' ', '', $data['plugin_name'] );
 		$data['plugin_namespace']      = str_replace( ' ', '', $data['plugin_name'] );
 		$data['plugin_namespace_test'] = $data['plugin_namespace'] . '\\Tests';
 
