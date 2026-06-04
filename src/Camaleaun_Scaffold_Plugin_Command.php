@@ -71,6 +71,10 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 	 * : PHP namespace for the plugin classes. Overrides the value derived from
 	 * --plugin_name. Use to set a custom namespace like 'MyOrg\\MyPlugin'.
 	 *
+	 * [--plugin_package=<package>]
+	 * : @package tag used in docblocks. Overrides the value derived from
+	 * --plugin_name (default: plugin_name with spaces removed).
+	 *
 	 * [--plugin_github_owner=<owner>]
 	 * : GitHub username or organisation used in blueprint-dev.json artifact URL.
 	 * Derived from --plugin_author_uri when omitted (last path segment of a github.com URL).
@@ -140,9 +144,9 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 		$data = array_merge( $defaults, array_intersect_key( $assoc_args, $defaults ) );
 
 		// Derive namespace and package from the final plugin_name (after --plugin_name override).
-		// 'Axell Core' → namespace 'AxellCore', package 'Axell_Core'.
-		// 'My Plugin'  → namespace 'MyPlugin',  package 'My_Plugin'.
-		$data['plugin_package']        = str_replace( ' ', '_', $data['plugin_name'] );
+		// 'Axell Core' → namespace 'AxellCore', package 'AxellCore'.
+		// 'My Plugin'  → namespace 'MyPlugin',  package 'MyPlugin'.
+		$data['plugin_package']        = str_replace( ' ', '', $data['plugin_name'] );
 		$data['plugin_namespace']      = str_replace( ' ', '', $data['plugin_name'] );
 		$data['plugin_namespace_test'] = $data['plugin_namespace'] . '\\Tests';
 
@@ -150,6 +154,11 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 		if ( ! empty( $assoc_args['plugin_namespace'] ) ) {
 			$data['plugin_namespace']      = $assoc_args['plugin_namespace'];
 			$data['plugin_namespace_test'] = $assoc_args['plugin_namespace'] . '\\Tests';
+		}
+
+		// --plugin_package overrides the derived package entirely.
+		if ( ! empty( $assoc_args['plugin_package'] ) ) {
+			$data['plugin_package'] = $assoc_args['plugin_package'];
 		}
 		$data['plugin_const_prefix']   = $const_prefix;
 		$data['textdomain']            = $plugin_slug;
