@@ -163,6 +163,7 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 			"{$plugin_dir}/Gruntfile.js"        => self::mustache_render( 'plugin-gruntfile.mustache', $data ),
 			"{$plugin_dir}/package.json"        => self::mustache_render( 'plugin-package.mustache', $data ),
 			"{$plugin_dir}/blueprint-dev.json"  => self::mustache_render( 'plugin-blueprint-dev.mustache', $data ),
+			"{$plugin_dir}/playwright.config.ts" => self::mustache_render( 'plugin-playwright.mustache', $data ),
 			"{$plugin_dir}/.gitignore"          => self::mustache_render( 'plugin-gitignore.mustache', $data ),
 			"{$plugin_dir}/.gitattributes"      => self::mustache_render( 'plugin-gitattributes.mustache', $data ),
 			"{$plugin_dir}/.gitmodules"         => self::mustache_render( 'plugin-gitmodules.mustache', $data ),
