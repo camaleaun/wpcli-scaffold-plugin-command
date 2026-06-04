@@ -67,6 +67,10 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 	 * [--plugin_uri=<url>]
 	 * : What to put in the 'Plugin URI:' header.
 	 *
+	 * [--plugin_github_owner=<owner>]
+	 * : GitHub username or organisation used in blueprint-dev.json artifact URL.
+	 * Derived from --plugin_author_uri when omitted (last path segment of a github.com URL).
+	 *
 	 * [--skip-tests]
 	 * : Don't generate files for unit testing.
 	 *
@@ -133,11 +137,21 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 			'plugin_author_uri'     => 'YOUR SITE HERE',
 			'plugin_uri'            => 'PLUGIN SITE HERE',
 			'plugin_tested_up_to'   => $this->get_wp_version(),
+			'plugin_github_owner'   => '',
 		];
 
 		// Merge only the keys that exist in $defaults (same as wp_parse_args semantics).
-		$data                = array_merge( $defaults, array_intersect_key( $assoc_args, $defaults ) );
-		$data['textdomain']  = $plugin_slug;
+		$data               = array_merge( $defaults, array_intersect_key( $assoc_args, $defaults ) );
+		$data['textdomain'] = $plugin_slug;
+
+		// JSON needs \\ to represent a single backslash — escape namespaces for composer.json.
+		$data['plugin_namespace_json']      = str_replace( '\\', '\\\\', $data['plugin_namespace'] );
+		$data['plugin_namespace_test_json'] = str_replace( '\\', '\\\\', $data['plugin_namespace_test'] );
+
+		// Derive GitHub owner from plugin_author_uri if not explicitly provided.
+		if ( '' === $data['plugin_github_owner'] ) {
+			$data['plugin_github_owner'] = $this->extract_github_owner( $data['plugin_author_uri'] );
+		}
 
 		// Resolve target directory.
 		if ( ! empty( $assoc_args['dir'] ) ) {
@@ -217,6 +231,19 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 	}
 
 	// ── Helpers ──────────────────────────────────────────────────────────────────
+
+	/**
+	 * Extracts the GitHub username/org from a github.com URL.
+	 * Returns the last path segment for github.com URLs, empty string otherwise.
+	 */
+	private function extract_github_owner( string $url ): string {
+		$parsed = parse_url( $url );
+		if ( empty( $parsed['host'] ) || ! str_contains( $parsed['host'], 'github.com' ) ) {
+			return '';
+		}
+		$parts = array_filter( explode( '/', trim( $parsed['path'] ?? '', '/' ) ) );
+		return (string) ( reset( $parts ) ?: '' );
+	}
 
 	/**
 	 * Clones lib/selfdirectory into the plugin directory.
