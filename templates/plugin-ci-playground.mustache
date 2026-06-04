@@ -1,3 +1,4 @@
+{{=<% %>=}}
 name: Try in Playground
 
 on:
@@ -22,18 +23,18 @@ jobs:
       - name: Build plugin zip
         run: |
           mkdir -p /tmp/build
-          git archive HEAD --prefix={{plugin_slug}}/ | tar xf - -C /tmp/build/
+          git archive HEAD --prefix=<%plugin_slug%>/ | tar xf - -C /tmp/build/
           git -C lib/selfdirectory archive HEAD \
-            --prefix={{plugin_slug}}/lib/selfdirectory/ \
+            --prefix=<%plugin_slug%>/lib/selfdirectory/ \
             -- class-selfdirectory.php \
             | tar xf - -C /tmp/build/
-          cd /tmp/build && zip -r {{plugin_slug}}.zip {{plugin_slug}}
+          cd /tmp/build && zip -r <%plugin_slug%>.zip <%plugin_slug%>
 
       - name: Upload plugin zip
         uses: actions/upload-artifact@v4
         with:
           name: plugin-zip
-          path: /tmp/build/{{plugin_slug}}.zip
+          path: /tmp/build/<%plugin_slug%>.zip
           retention-days: 7
 
   comment-playground:

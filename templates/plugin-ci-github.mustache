@@ -1,3 +1,4 @@
+{{=<% %>=}}
 name: Tests
 
 on:
@@ -29,29 +30,29 @@ jobs:
             echo "✔  $label: $(grep -oE "$pattern" "$file" | head -1)"
           }
 
-          check_field "Plugin Name"       "Plugin Name:"                        "{{plugin_slug}}.php"
-          check_field "Version"           "Version:[[:space:]]+[0-9]+\.[0-9]"  "{{plugin_slug}}.php"
-          check_field "Requires at least" "Requires at least:[[:space:]]+[0-9]" "{{plugin_slug}}.php"
-          check_field "Requires PHP"      "Requires PHP:[[:space:]]+[0-9]"      "{{plugin_slug}}.php"
-          check_field "Tested up to"      "Tested up to:[[:space:]]+[0-9]"      "{{plugin_slug}}.php"
-          check_field "License"           "License:[[:space:]]+GPL"             "{{plugin_slug}}.php"
+          check_field "Plugin Name"       "Plugin Name:"                        "<%plugin_slug%>.php"
+          check_field "Version"           "Version:[[:space:]]+[0-9]+\.[0-9]"  "<%plugin_slug%>.php"
+          check_field "Requires at least" "Requires at least:[[:space:]]+[0-9]" "<%plugin_slug%>.php"
+          check_field "Requires PHP"      "Requires PHP:[[:space:]]+[0-9]"      "<%plugin_slug%>.php"
+          check_field "Tested up to"      "Tested up to:[[:space:]]+[0-9]"      "<%plugin_slug%>.php"
+          check_field "License"           "License:[[:space:]]+GPL"             "<%plugin_slug%>.php"
           check_field "readme Stable tag" "Stable tag:[[:space:]]+[0-9]+\.[0-9]" "readme.txt"
 
       - name: Version == Stable tag
         run: |
-          MAIN=$(grep -oE "Version:[[:space:]]+[0-9][^[:space:]]*" {{plugin_slug}}.php | head -1 | grep -oE "[0-9][^[:space:]]*")
+          MAIN=$(grep -oE "Version:[[:space:]]+[0-9][^[:space:]]*" <%plugin_slug%>.php | head -1 | grep -oE "[0-9][^[:space:]]*")
           README=$(grep -oE "Stable tag:[[:space:]]+[0-9][^[:space:]]*" readme.txt | grep -oE "[0-9][^[:space:]]*")
-          [ "$MAIN" = "$README" ] && echo "✔  Version: $MAIN" || { echo "✗  Mismatch: {{plugin_slug}}.php=$MAIN readme.txt=$README"; exit 1; }
+          [ "$MAIN" = "$README" ] && echo "✔  Version: $MAIN" || { echo "✗  Mismatch: <%plugin_slug%>.php=$MAIN readme.txt=$README"; exit 1; }
 
       - name: Requires at least consistent
         run: |
-          MAIN=$(grep -oE "Requires at least:[[:space:]]+[0-9][^[:space:]]*" {{plugin_slug}}.php | grep -oE "[0-9][^[:space:]]*")
+          MAIN=$(grep -oE "Requires at least:[[:space:]]+[0-9][^[:space:]]*" <%plugin_slug%>.php | grep -oE "[0-9][^[:space:]]*")
           README=$(grep -oE "Requires at least:[[:space:]]+[0-9][^[:space:]]*" readme.txt | grep -oE "[0-9][^[:space:]]*")
           [ "$MAIN" = "$README" ] && echo "✔  Requires at least: $MAIN" || { echo "✗  Mismatch: $MAIN vs $README"; exit 1; }
 
       - name: Requires PHP consistent
         run: |
-          MAIN=$(grep -oE "Requires PHP:[[:space:]]+[0-9][^[:space:]]*" {{plugin_slug}}.php | grep -oE "[0-9][^[:space:]]*")
+          MAIN=$(grep -oE "Requires PHP:[[:space:]]+[0-9][^[:space:]]*" <%plugin_slug%>.php | grep -oE "[0-9][^[:space:]]*")
           README=$(grep -oE "Requires PHP:[[:space:]]+[0-9][^[:space:]]*" readme.txt | grep -oE "[0-9][^[:space:]]*")
           [ "$MAIN" = "$README" ] && echo "✔  Requires PHP: $MAIN" || { echo "✗  Mismatch: $MAIN vs $README"; exit 1; }
 

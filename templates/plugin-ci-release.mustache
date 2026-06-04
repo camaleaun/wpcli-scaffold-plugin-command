@@ -1,3 +1,4 @@
+{{=<% %>=}}
 name: Release
 
 on:
@@ -39,12 +40,12 @@ jobs:
         run: |
           mkdir -p /tmp/build
           tag="${{ steps.ctx.outputs.tag }}"
-          git archive HEAD --prefix={{plugin_slug}}/ | tar xf - -C /tmp/build/
+          git archive HEAD --prefix=<%plugin_slug%>/ | tar xf - -C /tmp/build/
           git -C lib/selfdirectory archive HEAD \
-            --prefix={{plugin_slug}}/lib/selfdirectory/ \
+            --prefix=<%plugin_slug%>/lib/selfdirectory/ \
             -- class-selfdirectory.php \
             | tar xf - -C /tmp/build/
-          cd /tmp/build && zip -r "{{plugin_slug}}.${tag}.zip" {{plugin_slug}}
+          cd /tmp/build && zip -r "<%plugin_slug%>.${tag}.zip" <%plugin_slug%>
 
       # ── Language packs ───────────────────────────────────────────────────────
 
@@ -75,11 +76,11 @@ jobs:
         if: steps.lang_src.outputs.dir != ''
         run: |
           mkdir -p /tmp/langs
-          for po in "${{ steps.lang_src.outputs.dir }}/{{plugin_slug}}-*.po"; do
+          for po in "${{ steps.lang_src.outputs.dir }}/<%plugin_slug%>-*.po"; do
             [ -f "$po" ] || continue
-            locale=$(basename "$po" .po | sed 's/^{{plugin_slug}}-//')
-            msgfmt "$po" -o "/tmp/langs/{{plugin_slug}}-${locale}.mo"
-            cp "$po" "/tmp/langs/{{plugin_slug}}-${locale}.po"
+            locale=$(basename "$po" .po | sed 's/^<%plugin_slug%>-//')
+            msgfmt "$po" -o "/tmp/langs/<%plugin_slug%>-${locale}.mo"
+            cp "$po" "/tmp/langs/<%plugin_slug%>-${locale}.po"
           done
 
       - name: Package language zips and collect asset paths
@@ -87,15 +88,15 @@ jobs:
         run: |
           files=""
           tag="${{ steps.ctx.outputs.tag }}"
-          plugin_zip="/tmp/build/{{plugin_slug}}.${tag}.zip"
+          plugin_zip="/tmp/build/<%plugin_slug%>.${tag}.zip"
           [ -f "$plugin_zip" ] && files="$plugin_zip"
-          for po in /tmp/langs/{{plugin_slug}}-*.po; do
+          for po in /tmp/langs/<%plugin_slug%>-*.po; do
             [ -f "$po" ] || continue
-            locale=$(basename "$po" .po | sed 's/^{{plugin_slug}}-//')
-            (cd /tmp/langs && zip "{{plugin_slug}}.${tag}-${locale}.zip" \
-              "{{plugin_slug}}-${locale}.po" \
-              "{{plugin_slug}}-${locale}.mo")
-            files="${files:+$files,}/tmp/langs/{{plugin_slug}}.${tag}-${locale}.zip"
+            locale=$(basename "$po" .po | sed 's/^<%plugin_slug%>-//')
+            (cd /tmp/langs && zip "<%plugin_slug%>.${tag}-${locale}.zip" \
+              "<%plugin_slug%>-${locale}.po" \
+              "<%plugin_slug%>-${locale}.mo")
+            files="${files:+$files,}/tmp/langs/<%plugin_slug%>.${tag}-${locale}.zip"
           done
           echo "paths=$files" >> "$GITHUB_OUTPUT"
           [ -n "$files" ] \
