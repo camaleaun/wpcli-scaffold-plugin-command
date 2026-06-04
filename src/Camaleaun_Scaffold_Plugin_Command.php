@@ -101,7 +101,7 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 	 *         --plugin_author_uri="https://github.com/gilbertotavares" \
 	 *         --activate
 	 *
-	 * @when after_wp_load
+	 * @when before_wp_load
 	 */
 	public function __invoke( $args, $assoc_args ) {
 		$plugin_slug    = $args[0];
@@ -126,9 +126,9 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 			'plugin_author'       => 'YOUR NAME HERE',
 			'plugin_author_uri'   => 'YOUR SITE HERE',
 			'plugin_uri'          => 'PLUGIN SITE HERE',
-			'plugin_tested_up_to' => get_bloginfo( 'version' ),
+			'plugin_tested_up_to' => $this->get_wp_version(),
 		];
-		$data = wp_parse_args( $assoc_args, $defaults );
+		$data = array_merge( $defaults, array_intersect_key( $assoc_args, $defaults ) );
 		$data['textdomain'] = $plugin_slug;
 
 		// Resolve target directory.
@@ -138,11 +138,10 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 			}
 			$plugin_dir = "{$assoc_args['dir']}/{$plugin_slug}";
 		} else {
-			$this->maybe_create_plugins_dir();
-			$plugin_dir = WP_PLUGIN_DIR . "/{$plugin_slug}";
+			$plugin_dir = $this->resolve_plugins_dir() . "/{$plugin_slug}";
 		}
 
-		$force = Utils\get_flag_value( $assoc_args, 'force' );
+		$force = (bool) Utils\get_flag_value( $assoc_args, 'force' );
 
 		// Core plugin files.
 		$files_to_create = [
@@ -183,18 +182,42 @@ class Camaleaun_Scaffold_Plugin_Command extends WP_CLI_Command {
 
 		// Activate.
 		if ( Utils\get_flag_value( $assoc_args, 'activate' ) ) {
-			WP_CLI::run_command( [ 'plugin', 'activate', $plugin_slug ] );
+			WP_CLI::run_command( [ 'plugin', 'activate', $plugin_slug ], [], true, true );
 		} elseif ( Utils\get_flag_value( $assoc_args, 'activate-network' ) ) {
-			WP_CLI::run_command( [ 'plugin', 'activate', $plugin_slug ], [ 'network' => true ] );
+			WP_CLI::run_command( [ 'plugin', 'activate', $plugin_slug ], [ 'network' => true ], true, true );
 		}
 	}
 
 	// ── Helpers ──────────────────────────────────────────────────────────────────
 
-	private function maybe_create_plugins_dir(): void {
-		if ( ! is_dir( WP_PLUGIN_DIR ) ) {
-			wp_mkdir_p( WP_PLUGIN_DIR );
+	/**
+	 * Resolves the plugins directory without requiring WP to be loaded.
+	 */
+	private function resolve_plugins_dir(): string {
+		$wp_path = WP_CLI::get_runner()->config['path'] ?? getcwd();
+		$plugins_dir = rtrim( $wp_path, '/' ) . '/wp-content/plugins';
+		if ( ! is_dir( $plugins_dir ) ) {
+			if ( ! mkdir( $plugins_dir, 0755, true ) ) {
+				WP_CLI::error( "Could not create plugins directory: {$plugins_dir}" );
+			}
 		}
+		return $plugins_dir;
+	}
+
+	/**
+	 * Returns the WordPress version without requiring WP to be loaded.
+	 */
+	private function get_wp_version(): string {
+		$wp_path = WP_CLI::get_runner()->config['path'] ?? getcwd();
+		$version_file = rtrim( $wp_path, '/' ) . '/wp-includes/version.php';
+		if ( file_exists( $version_file ) ) {
+			$wp_version = '';
+			require $version_file;
+			if ( '' !== $wp_version ) {
+				return $wp_version;
+			}
+		}
+		return '6.0';
 	}
 
 	/**
