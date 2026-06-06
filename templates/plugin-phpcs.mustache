@@ -15,9 +15,14 @@
 
     <rule ref="WordPress-Extra">
         <exclude name="Universal.Files.SeparateFunctionsFromOO"/>
-        <!-- PSR-4 autoloading uses PascalCase filenames intentionally. -->
-        <exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
-        <exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
+    </rule>
+
+    <!-- src/ uses PSR-4 PascalCase filenames intentionally (same pattern as WooCommerce). -->
+    <rule ref="WordPress.Files.FileName.InvalidClassFileName">
+        <exclude-pattern>src/</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.Files.FileName.NotHyphenatedLowercase">
+        <exclude-pattern>src/</exclude-pattern>
     </rule>
     <rule ref="WordPress-Docs"/>
 

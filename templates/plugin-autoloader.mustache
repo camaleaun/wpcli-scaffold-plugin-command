@@ -1,6 +1,6 @@
 <?php
 /**
- * PSR-4 autoloader bootstrap.
+ * Includes the Composer autoloader used for packages and classes in the src/ directory.
  *
  * @package {{plugin_package}}
  * @since   0.1.0
@@ -11,14 +11,14 @@ namespace {{plugin_namespace}};
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Bootstraps Composer's PSR-4 autoloader.
+ * Autoloader class.
  *
  * @since 0.1.0
  */
 class Autoloader {
 
 	/**
-	 * Constructor — private, use ::init().
+	 * Static-only class.
 	 *
 	 * @since 0.1.0
 	 */
@@ -27,10 +27,12 @@ class Autoloader {
 	/**
 	 * Require vendor/autoload.php and return the result.
 	 *
+	 * If the autoloader is not present, logs the failure and shows an admin notice.
+	 *
 	 * @since  0.1.0
-	 * @return bool|mixed False when the autoloader file is missing or returns falsy.
+	 * @return bool
 	 */
-	public static function init(): mixed {
+	public static function init() {
 		$autoloader = dirname( __DIR__ ) . '/vendor/autoload.php';
 
 		if ( ! is_readable( $autoloader ) ) {
@@ -38,8 +40,12 @@ class Autoloader {
 			return false;
 		}
 
-		$result = require $autoloader;
-		return $result ?: false;
+		$autoloader_result = require $autoloader;
+		if ( ! $autoloader_result ) {
+			return false;
+		}
+
+		return $autoloader_result;
 	}
 
 	/**
@@ -48,19 +54,27 @@ class Autoloader {
 	 * @since  0.1.0
 	 * @return void
 	 */
-	private static function missing_autoloader(): void {
-		if ( ! is_admin() ) {
-			return;
+	protected static function missing_autoloader() {
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				'Your installation of {{plugin_name}} is incomplete. Run "composer install" in the plugin directory.'
+			);
 		}
 		add_action(
 			'admin_notices',
 			function () {
-				echo '<div class="notice notice-error"><p>' .
-					esc_html__(
-						'{{plugin_name}}: Composer autoloader not found. Run "composer install".',
-						'{{textdomain}}'
-					) .
-					'</p></div>';
+				?>
+				<div class="notice notice-error">
+					<p>
+						<?php
+						esc_html_e(
+							'Your installation of {{plugin_name}} is incomplete. Run "composer install" in the plugin directory.',
+							'{{textdomain}}'
+						);
+						?>
+					</p>
+				</div>
+				<?php
 			}
 		);
 	}

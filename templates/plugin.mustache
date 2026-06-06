@@ -25,8 +25,8 @@ define( '{{plugin_const_prefix}}_URL', plugin_dir_url( __FILE__ ) );
 
 require_once {{plugin_const_prefix}}_PATH . 'vendor/symfony/polyfill-php80/bootstrap.php';
 require_once {{plugin_const_prefix}}_PATH . 'lib/selfdirectory/class-selfdirectory.php';
-require_once {{plugin_const_prefix}}_PATH . 'src/Autoloader.php';
-require_once {{plugin_const_prefix}}_PATH . 'src/Packages.php';
+require {{plugin_const_prefix}}_PATH . 'src/Autoloader.php';
+require {{plugin_const_prefix}}_PATH . 'src/Packages.php';
 
 if ( ! \{{plugin_namespace}}\Autoloader::init() ) {
 	return;
