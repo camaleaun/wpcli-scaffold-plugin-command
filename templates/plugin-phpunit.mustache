@@ -11,12 +11,10 @@
             <directory>tests</directory>
         </testsuite>
     </testsuites>
-    <source>
+    <coverage>
         <include>
             <file>{{plugin_slug}}.php</file>
         </include>
-    </source>
-    <coverage>
         <report>
             <html outputDirectory="tests/coverage"/>
             <clover outputFile="tests/coverage/clover.xml"/>

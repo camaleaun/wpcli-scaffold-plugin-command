@@ -15,6 +15,9 @@
 
     <rule ref="WordPress-Extra">
         <exclude name="Universal.Files.SeparateFunctionsFromOO"/>
+        <!-- PSR-4 autoloading uses PascalCase filenames intentionally. -->
+        <exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
+        <exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
     </rule>
     <rule ref="WordPress-Docs"/>
 
@@ -27,6 +30,6 @@
     </rule>
 
     <rule ref="PHPCompatibilityWP"/>
-    <config name="minimum_supported_wp_version" value="6.4"/>
-    <config name="testVersion" value="8.1-"/>
+    <config name="minimum_supported_wp_version" value="6.9"/>
+    <config name="testVersion" value="7.4-"/>
 </ruleset>

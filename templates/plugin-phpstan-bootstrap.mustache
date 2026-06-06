@@ -3,6 +3,8 @@
  * PHPStan bootstrap — defines constants required for static analysis.
  */
 
+require_once __DIR__ . '/vendor/symfony/polyfill-php80/bootstrap.php';
+
 define( 'ABSPATH', '/tmp/wordpress/' );
 define( 'WPINC', 'wp-includes' );
 define( '{{plugin_const_prefix}}_VERSION', '0.1.0' );

@@ -4,8 +4,8 @@
  * Plugin URI:        {{plugin_uri}}
  * Description:       {{plugin_description}}
  * Version:           0.1.0
- * Requires at least: 6.4
- * Requires PHP:      8.1
+ * Requires at least: 6.9
+ * Requires PHP:      7.4
  * Tested up to:      {{plugin_tested_up_to}}
  * Author:            {{plugin_author}}
  * Author URI:        {{plugin_author_uri}}
@@ -23,6 +23,7 @@ define( '{{plugin_const_prefix}}_VERSION', '0.1.0' );
 define( '{{plugin_const_prefix}}_PATH', plugin_dir_path( __FILE__ ) );
 define( '{{plugin_const_prefix}}_URL', plugin_dir_url( __FILE__ ) );
 
+require_once {{plugin_const_prefix}}_PATH . 'vendor/symfony/polyfill-php80/bootstrap.php';
 require_once {{plugin_const_prefix}}_PATH . 'lib/selfdirectory/class-selfdirectory.php';
 require_once {{plugin_const_prefix}}_PATH . 'src/Autoloader.php';
 require_once {{plugin_const_prefix}}_PATH . 'src/Packages.php';
